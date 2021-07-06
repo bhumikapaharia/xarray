@@ -112,7 +112,6 @@ jobs:
               python --version && \
               pwd && \
               ls && \
-              cd xarray && \
               mamba env update -f ci/requirements/environment.yml && \
 
               python -m pip install --no-deps -e . && \
