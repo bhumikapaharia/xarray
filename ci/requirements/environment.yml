@@ -6,21 +6,21 @@ dependencies:
   - aiobotocore
   - boto3
   - bottleneck
-  - cartopy
-  - cdms2
-  - cfgrib
-  - cftime
+  #- cartopy
+  #- cdms2
+  #- cfgrib
+  #- cftime
   - dask
   - distributed
   - h5netcdf
   - h5py
   - hdf5
   - hypothesis
-  - iris
+  #- iris
   - lxml    # Optional dep of pydap
   - matplotlib-base
-  - nc-time-axis
-  - netcdf4
+  #- nc-time-axis
+  #- netcdf4
   - numba
   - numexpr
   - numpy
@@ -29,19 +29,19 @@ dependencies:
   - pip
   - pooch
   - pre-commit
-  - pseudonetcdf
+  #- pseudonetcdf
   - pydap
   # - pynio: not compatible with netCDF4>1.5.3; only tested in py37-bare-minimum
   - pytest
   - pytest-cov
   - pytest-env
   - pytest-xdist
-  - rasterio
+  #- rasterio
   - scipy
   - seaborn
   - setuptools
   - sparse
   - toolz
-  - zarr
+  #- zarr
   - pip:
     - numbagg
