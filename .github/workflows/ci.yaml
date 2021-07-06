@@ -9,30 +9,9 @@ on:
   workflow_dispatch: # allows you to trigger manually
 
 jobs:
-  detect-ci-trigger:
-    name: detect ci trigger
-    runs-on: ubuntu-latest
-    if: |
-      github.repository == 'pydata/xarray'
-      && (github.event_name == 'push' || github.event_name == 'pull_request')
-    outputs:
-      triggered: ${{ steps.detect-trigger.outputs.trigger-found }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - uses: xarray-contrib/ci-trigger@v1.1
-        id: detect-trigger
-        with:
-          keyword: "[skip-ci]"
   test_on_x86:
     name: ${{ matrix.os }} py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
-    needs: detect-ci-trigger
-    if: needs.detect-ci-trigger.outputs.triggered == 'false'
-    defaults:
-      run:
-        shell: bash -l {0}
     strategy:
       fail-fast: false
       matrix:
