@@ -25,7 +25,7 @@ jobs:
         id: detect-trigger
         with:
           keyword: "[skip-ci]"
-  test:
+  test_on_x86:
     name: ${{ matrix.os }} py${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     needs: detect-ci-trigger
@@ -36,9 +36,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest"]
         # Bookend python versions
-        python-version: ["3.7", "3.9"]
+        python-version: ["3.7"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -92,35 +92,56 @@ jobs:
           --cov-report=xml
           --junitxml=pytest.xml
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: Test results for ${{ runner.os }}-${{ matrix.python-version }}
-          path: pytest.xml
 
-      - name: Upload code coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          env_vars: RUNNER_OS,PYTHON_VERSION
-          name: codecov-umbrella
-          fail_ci_if_error: false
+  armv64_job:
+      name: Build and Test for arm64
+      strategy:
+        matrix:
+          pyver: [cp37-cp37m]
+      runs-on: ubuntu-18.04
+      env:
+        py: /opt/python/${{ matrix.pyver }}/bin/python
+        img: quay.io/pypa/manylinux2014_aarch64  
+    
+      steps:
+        - uses: actions/checkout@v2
+        - name: Set up QEMU
+          id: qemu
+          uses: docker/setup-qemu-action@v1
+      
+        - name: Install and Run tests
+          run: |
+            docker run --rm -v ${{ github.workspace }}:/ws:rw --workdir=/ws \
+              ${{ env.img }} \
+              bash -exc '${{ env.py }} -m pip install virtualenv && ${{ env.py }} -m venv .env && \
+              source .env/bin/activate && \
+              yum install -y dnf 
+              dnf install -y wget
+              
+              python -m pip install --upgrade pip && \
+              python --version && \
+              uname -m && \
+              whoami && \
+              wget -q "https://github.com/conda-forge/miniforge/releases/download/4.10.2-0/Mambaforge-4.10.2-0-Linux-aarch64.sh" -O miniconda.sh && \
+              chmod +x miniconda.sh && \
+              ./miniconda.sh -u -b -p $HOME/miniconda3 && \
+              export PATH=$HOME/miniconda3/bin:$PATH && \
+              ~/miniconda3/bin/conda install conda-build -y && \
+              ~/miniconda3/bin/conda create -q -y --name testenv python=3.7 cython numpy pytest psutil pip && \
+              source ~/miniconda3/bin/activate testenv && \
+              conda --version && \
+              python --version && \
+              pwd && \
+              ls && \
+              cd xarray && \
+              mamba env update -f ci/requirements/environment.yml && \
 
-  publish-test-results:
-    needs: test
-    runs-on: ubuntu-latest
-    # the build-and-test job might be skipped, we don't need to run this job then
-    if: success() || failure()
-
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: test-results
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          files: test-results/**/*.xml
+              python -m pip install --no-deps -e . && \
+              conda info -a && \
+              conda list && \
+              python xarray/util/print_versions.py && \
+              conda install pandas typing_extensions && \
+              python -m pytest --cov=xarray --cov-report=xml --junitxml=pytest.xml && \
+              
+              deactivate'
+  
