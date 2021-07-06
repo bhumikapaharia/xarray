@@ -119,7 +119,7 @@ jobs:
               conda list && \
               python xarray/util/print_versions.py && \
               conda install pandas typing_extensions && \
-              python -m pytest --cov=xarray --cov-report=xml --junitxml=pytest.xml && \
+              python -m pytest -n 4 --cov=xarray --cov-report=xml --junitxml=pytest.xml && \
               
               deactivate'
   
