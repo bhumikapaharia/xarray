@@ -55,7 +55,9 @@ jobs:
 
       - name: Install xarray
         run: |
-          python -m pip install --no-deps -e .
+          
+          chmod +x /usr/local/lib/python3.8/dist-packages/test-easy-install-2343.write-test
+          sudo python -m pip install --no-deps -e .
 
       - name: Version info
         run: |
@@ -114,8 +116,7 @@ jobs:
               ls && \
               mamba env update -f ci/requirements/environment.yml && \
 
-              chmod +x /usr/local/lib/python3.8/dist-packages/test-easy-install-2343.write-test && \
-              sudo python -m pip install --no-deps -e . && \
+              python -m pip install --no-deps -e . && \
               conda info -a && \
               conda list && \
               python xarray/util/print_versions.py && \
